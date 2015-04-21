@@ -1,0 +1,7 @@
+{
+  "name": "typset",
+  "version": "0.0.1",
+  "dependencies": {
+    "opentype.js": "0.4.x"
+  }
+}
