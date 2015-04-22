@@ -8,15 +8,15 @@
 <body>
 <div class="container">
     <div id="glyph-display">
-        <canvas id="glyph" width="500" height="500" style="background-color: lightyellow;"></canvas>
+        <canvas id="glyph" width="300" height="500" style="background-color: lightyellow;"></canvas>
     </div>
 </div>
 <script>
-    function displayGlyph(width, height, ctx, glyph, font) {
-        var hhea = font.tables.hhea,
+    function displayGlyph(width, height, ctx, glyph) {
+        var hhea = glyph.font.tables.hhea,
                 maxHeight = hhea.ascender - hhea.descender;
-        var glyphScale = Math.min(height/maxHeight, hhea.advanceWidthMax);
-        var glyphSize = glyphScale * font.unitsPerEm;
+        var glyphScale = Math.min(height/maxHeight, width/glyph.advanceWidth);
+        var glyphSize = glyphScale * glyph.font.unitsPerEm;
         var glyphBaseline = height * hhea.ascender / maxHeight;
         var glyphWidth = glyph.advanceWidth * glyphScale;
         ctx.clearRect(0, 0, width, height);
@@ -27,7 +27,7 @@
         window.font = font;
         var glyph = font.glyphs[12];
         var glyphCanvas = document.getElementById('glyph');
-        displayGlyph(glyphCanvas.width, glyphCanvas.height, glyphCanvas.getContext('2d'), glyph, window.font);
+        displayGlyph(glyphCanvas.width, glyphCanvas.height, glyphCanvas.getContext('2d'), glyph);
     }
     opentype.load('latinmodern-math.otf', function (err, font) {
         onFontLoaded(font);
