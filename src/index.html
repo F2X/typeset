@@ -8,7 +8,7 @@
 <body>
 <div class="container">
     <div id="glyph-display">
-        <canvas id="glyph" width="500" height="300" style="background-color: palegoldenrod;"></canvas>
+        <canvas id="glyph" width="500" height="500" style="background-color: palegoldenrod;"></canvas>
     </div>
 </div>
 <script>
@@ -116,7 +116,7 @@
     function initGlyphDisplay(glyphW, glyphH, ctx) {
         var hhea = font.tables.hhea,
             maxHeight = hhea.ascender - hhea.descender;
-        glyphScale = glyphH/maxHeight;
+        glyphScale = Math.min(glyphH/maxHeight, hhea.advanceWidthMax);
         glyphSize = glyphScale * font.unitsPerEm;
         glyphBaseline = glyphH * hhea.ascender / maxHeight;
         function hline(text, yunits) {
