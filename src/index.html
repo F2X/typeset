@@ -8,7 +8,7 @@
 <body>
 <div class="container">
     <div id="glyph-display">
-        <canvas id="glyph" width="500" height="500" style="background-color: palegoldenrod;"></canvas>
+        <canvas id="glyph" width="500" height="500" style="background-color: lightyellow;"></canvas>
     </div>
 </div>
 <script>
@@ -18,23 +18,10 @@
         var glyphScale = Math.min(height/maxHeight, hhea.advanceWidthMax);
         var glyphSize = glyphScale * font.unitsPerEm;
         var glyphBaseline = height * hhea.ascender / maxHeight;
-        function hline(text, yunits) {
-            ypx = glyphBaseline - yunits * glyphScale;
-            ctx.fillText(text, 2, ypx+3);
-            ctx.fillRect(80, ypx, width, 1);
-        }
+        var glyphWidth = glyph.advanceWidth * glyphScale;
         ctx.clearRect(0, 0, width, height);
-        ctx.fillStyle = '#a0a0a0';
-        hline('Baseline', 0);
-        hline('Ascender', font.tables.hhea.ascender);
-        hline('Descender', font.tables.hhea.descender);
-        var glyphWidth = glyph.advanceWidth * glyphScale,
-                xmin = (width - glyphWidth)/2,
-                xmax = (width + glyphWidth)/2,
-                x0 = xmin,
-                markSize = 10;
         ctx.fillStyle = '#606060';
-        glyph.draw(ctx, x0, glyphBaseline, glyphSize);
+        glyph.draw(ctx, 0, glyphBaseline, glyphSize);
     }
     function onFontLoaded(font) {
         window.font = font;
