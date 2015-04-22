@@ -7,11 +7,6 @@
 </head>
 <body>
 <div class="container">
-    <div>
-        Glyphs <span id="pagination"></span>
-        <br>
-        <div id="glyph-list-end"></div>
-    </div>
     <div style="position: relative">
         <div id="glyph-display">
             <canvas id="glyph-bg" width="500" height="500"></canvas>
@@ -23,38 +18,7 @@
     <hr>
 </div>
 <script>
-    var cellCount = 100,
-            cellWidth = 44,
-            cellHeight = 40,
-            cellMarginTop = 1,
-            cellMarginBottom = 8,
-            cellMarginLeftRight = 1,
-            glyphMargin = 5,
-            pixelRatio = window.devicePixelRatio || 1;
-    var pageSelected, font, fontScale, fontSize, fontBaseline, glyphScale, glyphSize, glyphBaseline;
-    function enableHighDPICanvas(canvas) {
-        if (typeof canvas === 'string') {
-            canvas = document.getElementById(canvas);
-        }
-        var pixelRatio = window.devicePixelRatio || 1;
-        if (pixelRatio === 1) return;
-        var oldWidth = canvas.width;
-        var oldHeight = canvas.height;
-        canvas.width = oldWidth * pixelRatio;
-        canvas.height = oldHeight * pixelRatio;
-        canvas.style.width = oldWidth + 'px';
-        canvas.style.height = oldHeight + 'px';
-        canvas.getContext('2d').scale(pixelRatio, pixelRatio);
-    }
-    function showErrorMessage(message) {
-        var el = document.getElementById('message');
-        if (!message || message.trim().length === 0) {
-            el.style.display = 'none';
-        } else {
-            el.style.display = 'block';
-        }
-        el.innerHTML = message;
-    }
+    var font, glyphScale, glyphSize, glyphBaseline;
     function pathCommandToString(cmd) {
         var str = '<strong>' + cmd.type + '</strong> ' +
                 ((cmd.x !== undefined) ? 'x='+cmd.x+' y='+cmd.y+' ' : '') +
@@ -183,8 +147,8 @@
     function displayGlyph(glyphIndex) {
         var canvas = document.getElementById('glyph'),
                 ctx = canvas.getContext('2d'),
-                width = canvas.width / pixelRatio,
-                height = canvas.height / pixelRatio;
+                width = canvas.width / 1,
+                height = canvas.height / 1;
         ctx.clearRect(0, 0, width, height);
         if(glyphIndex < 0) return;
         var glyph = font.glyphs[glyphIndex],
@@ -209,130 +173,37 @@
         drawPathWithArrows(ctx, path);
         glyph.drawPoints(ctx, x0, glyphBaseline, glyphSize);
     }
-    function renderGlyphItem(canvas, glyphIndex) {
-        var cellMarkSize = 4;
-        var ctx = canvas.getContext('2d');
-        ctx.clearRect(0, 0, cellWidth, cellHeight);
-        if (glyphIndex >= font.numGlyphs) return;
-        ctx.fillStyle = '#606060';
-        ctx.font = '9px sans-serif';
-        ctx.fillText(glyphIndex, 1, cellHeight-1);
-        var glyph = font.glyphs[glyphIndex],
-                glyphWidth = glyph.advanceWidth * fontScale,
-                xmin = (cellWidth - glyphWidth)/2,
-                xmax = (cellWidth + glyphWidth)/2,
-                x0 = xmin;
-        ctx.fillStyle = '#a0a0a0';
-        ctx.fillRect(xmin-cellMarkSize+1, fontBaseline, cellMarkSize, 1);
-        ctx.fillRect(xmin, fontBaseline, 1, cellMarkSize);
-        ctx.fillRect(xmax, fontBaseline, cellMarkSize, 1);
-        ctx.fillRect(xmax, fontBaseline, 1, cellMarkSize);
-        ctx.fillStyle = '#000000';
-        glyph.draw(ctx, x0, fontBaseline, fontSize);
-    }
-    function displayGlyphPage(pageNum) {
-        pageSelected = pageNum;
-        document.getElementById('p'+pageNum).className = 'page-selected';
-        var firstGlyph = pageNum * cellCount;
-        for(var i = 0; i < cellCount; i++) {
-            renderGlyphItem(document.getElementById('g'+i), firstGlyph+i);
-        }
-    }
-    function pageSelect(event) {
-        document.getElementsByClassName('page-selected')[0].className = '';
-        displayGlyphPage(+event.target.id.substr(1));
-    }
     function initGlyphDisplay() {
         var glyphBgCanvas = document.getElementById('glyph-bg'),
-                w = glyphBgCanvas.width / pixelRatio,
-                h = glyphBgCanvas.height / pixelRatio,
-                glyphW = w - glyphMargin*2,
-                glyphH = h - glyphMargin*2,
+                glyphW = glyphBgCanvas.width,
+                glyphH = glyphBgCanvas.height,
                 head = font.tables.head,
                 maxHeight = head.yMax - head.yMin,
+                maxWidth = head.xMax - head.xMin,
                 ctx = glyphBgCanvas.getContext('2d');
-        glyphScale = Math.min(glyphW/(head.xMax - head.xMin), glyphH/maxHeight);
+        glyphScale = Math.min(glyphW/maxWidth, glyphH/maxHeight);
         glyphSize = glyphScale * font.unitsPerEm;
-        glyphBaseline = glyphMargin + glyphH * head.yMax / maxHeight;
+        glyphBaseline = glyphH * head.yMax / maxHeight;
         function hline(text, yunits) {
             ypx = glyphBaseline - yunits * glyphScale;
             ctx.fillText(text, 2, ypx+3);
-            ctx.fillRect(80, ypx, w, 1);
+            ctx.fillRect(80, ypx, glyphW, 1);
         }
-        ctx.clearRect(0, 0, w, h);
-        ctx.fillStyle = '#a0a0a0'
+        ctx.clearRect(0, 0, glyphW, glyphH);
+        ctx.fillStyle = '#a0a0a0';
         hline('Baseline', 0);
         hline('yMax', font.tables.head.yMax);
         hline('yMin', font.tables.head.yMin);
         hline('Ascender', font.tables.hhea.ascender);
         hline('Descender', font.tables.hhea.descender);
-        hline('Typo Ascender', font.tables.os2.sTypoAscender);
-        hline('Typo Descender', font.tables.os2.sTypoDescender);
     }
     function onFontLoaded(font) {
         window.font = font;
-        var w = cellWidth - cellMarginLeftRight * 2,
-                h = cellHeight - cellMarginTop - cellMarginBottom,
-                head = font.tables.head,
-                maxHeight = head.yMax - head.yMin;
-        fontScale = Math.min(w/(head.xMax - head.xMin), h/maxHeight);
-        fontSize = fontScale * font.unitsPerEm;
-        fontBaseline = cellMarginTop + h * head.yMax / maxHeight;
-        var pagination = document.getElementById("pagination");
-        pagination.innerHTML = '';
-        var fragment = document.createDocumentFragment();
-        var numPages = Math.ceil(font.numGlyphs / cellCount);
-        for(var i = 0; i < numPages; i++) {
-            var link = document.createElement('span');
-            var lastIndex = Math.min(font.numGlyphs-1, (i+1)*cellCount-1);
-            link.textContent = i*cellCount + '-' + lastIndex;
-            link.id = 'p' + i;
-            link.addEventListener('click', pageSelect, false);
-            fragment.appendChild(link);
-            // A white space allows to break very long lines into multiple lines.
-            // This is needed for fonts with thousands of glyphs.
-            fragment.appendChild(document.createTextNode(' '));
-        }
-        pagination.appendChild(fragment);
         initGlyphDisplay();
-        displayGlyphPage(0);
-        displayGlyph(-1);
-        displayGlyphData(-1);
+        displayGlyph(4);
+        displayGlyphData(4);
     }
-    function cellSelect(event) {
-        if (!font) return;
-        var firstGlyphIndex = pageSelected*cellCount,
-                cellIndex = +event.target.id.substr(1),
-                glyphIndex = firstGlyphIndex + cellIndex;
-        if (glyphIndex < font.numGlyphs) {
-            displayGlyph(glyphIndex);
-            displayGlyphData(glyphIndex);
-        }
-    }
-    function prepareGlyphList() {
-        var marker = document.getElementById('glyph-list-end'),
-                parent = marker.parentElement;
-        for(var i = 0; i < cellCount; i++) {
-            var canvas = document.createElement('canvas');
-            canvas.width = cellWidth;
-            canvas.height = cellHeight;
-            canvas.className = 'item';
-            canvas.id = 'g'+i;
-            canvas.addEventListener('click', cellSelect, false);
-            enableHighDPICanvas(canvas);
-            parent.insertBefore(canvas, marker);
-        }
-    }
-    var fontFileName = 'latinmodern-math.otf';
-    enableHighDPICanvas('glyph-bg');
-    enableHighDPICanvas('glyph');
-    prepareGlyphList();
-    opentype.load(fontFileName, function (err, font) {
-        var amount, glyph, ctx, x, y, fontSize;
-        if (err) {
-            showErrorMessage(err.toString());
-            return;
-        }
+    opentype.load('latinmodern-math.otf', function (err, font) {
         onFontLoaded(font);
     });
 </script>
